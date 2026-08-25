@@ -44,8 +44,8 @@ async function verifyTurnstile(token, request, env) {
   return response.json();
 }
 
-export async function onRequestPost(context) {
-  const { request, env } = context;
+async function handleLead(request, env) {
+  if (request.method !== "POST") return json({ error: "Method Not Allowed" }, 405);
 
   if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_ID || !env.TURNSTILE_SECRET_KEY) {
     return json({ error: "Сервис формы временно не настроен." }, 503);
@@ -53,9 +53,7 @@ export async function onRequestPost(context) {
 
   const origin = request.headers.get("Origin");
   const requestOrigin = new URL(request.url).origin;
-  if (origin && origin !== requestOrigin) {
-    return json({ error: "Запрос отклонён." }, 403);
-  }
+  if (origin && origin !== requestOrigin) return json({ error: "Запрос отклонён." }, 403);
 
   const contentType = request.headers.get("Content-Type") || "";
   if (!contentType.toLowerCase().includes("application/json")) {
@@ -63,9 +61,7 @@ export async function onRequestPost(context) {
   }
 
   const contentLength = Number(request.headers.get("Content-Length") || "0");
-  if (contentLength > 12000) {
-    return json({ error: "Слишком большой запрос." }, 413);
-  }
+  if (contentLength > 12000) return json({ error: "Слишком большой запрос." }, 413);
 
   let payload;
   try {
@@ -76,10 +72,7 @@ export async function onRequestPost(context) {
     return json({ error: "Некорректные данные." }, 400);
   }
 
-  // Honeypot: bots frequently fill every field.
-  if (clean(payload.company, 100)) {
-    return json({ ok: true });
-  }
+  if (clean(payload.company, 100)) return json({ ok: true });
 
   const name = clean(payload.name, 80);
   const phone = clean(payload.phone, 30);
@@ -95,12 +88,10 @@ export async function onRequestPost(context) {
   if (!payload.consent) return json({ error: "Необходимо согласие на обработку данных." }, 400);
   if (name.length < 2) return json({ error: "Укажите имя." }, 400);
   if (!validPhone(phone)) return json({ error: "Проверьте номер телефона." }, 400);
-  if (!token) return json({ error: "Не пройдена проверка безопасности." }, 400);
 
   const allowedTypes = new Set(["Новостройка", "Вторичное жильё", "Частный дом", "Другое"]);
-  if (!allowedTypes.has(objectType)) {
-    return json({ error: "Некорректный тип объекта." }, 400);
-  }
+  if (!allowedTypes.has(objectType)) return json({ error: "Некорректный тип объекта." }, 400);
+  if (!token) return json({ error: "Не пройдена проверка безопасности." }, 400);
 
   const turnstile = await verifyTurnstile(token, request, env);
   if (!turnstile.success) {
@@ -124,9 +115,7 @@ export async function onRequestPost(context) {
   ];
 
   if (utmSource || utmMedium || utmCampaign) {
-    rows.push(
-      `📊 <b>UTM:</b> ${escapeHtml([utmSource, utmMedium, utmCampaign].filter(Boolean).join(" / "))}`
-    );
+    rows.push(`📊 <b>UTM:</b> ${escapeHtml([utmSource, utmMedium, utmCampaign].filter(Boolean).join(" / "))}`);
   }
 
   const tgResponse = await fetch(
@@ -151,6 +140,14 @@ export async function onRequestPost(context) {
   return json({ ok: true });
 }
 
-export function onRequestGet() {
-  return json({ error: "Method Not Allowed" }, 405);
-}
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+
+    if (url.pathname === "/api/lead") {
+      return handleLead(request, env);
+    }
+
+    return env.ASSETS.fetch(request);
+  }
+};
