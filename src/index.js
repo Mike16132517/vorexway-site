@@ -111,8 +111,6 @@ async function handleLead(request, env) {
     `🏗 <b>Объект:</b> ${escapeHtml(objectType)}`,
     `💬 <b>Комментарий:</b> ${escapeHtml(comment || "—")}`,
     "",
-  ];
-
   if (utmSource || utmMedium || utmCampaign) {
     rows.push(`📊 <b>UTM:</b> ${escapeHtml([utmSource, utmMedium, utmCampaign].filter(Boolean).join(" / "))}`);
   }
