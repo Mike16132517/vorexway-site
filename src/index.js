@@ -111,7 +111,6 @@ async function handleLead(request, env) {
     `🏗 <b>Объект:</b> ${escapeHtml(objectType)}`,
     `💬 <b>Комментарий:</b> ${escapeHtml(comment || "—")}`,
     "",
-    `📄 <b>Страница:</b> ${escapeHtml(page || "/")}`
   ];
 
   if (utmSource || utmMedium || utmCampaign) {
