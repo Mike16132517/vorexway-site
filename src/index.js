@@ -79,7 +79,6 @@ async function handleLead(request, env) {
   const area = clean(payload.area, 20);
   const objectType = clean(payload.objectType, 40);
   const comment = clean(payload.comment, 1000);
-  const page = clean(payload.page, 120);
   const utmSource = clean(payload.utm_source, 100);
   const utmMedium = clean(payload.utm_medium, 100);
   const utmCampaign = clean(payload.utm_campaign, 100);
@@ -110,8 +109,10 @@ async function handleLead(request, env) {
     `📐 <b>Площадь:</b> ${escapeHtml(area || "не указана")}`,
     `🏗 <b>Объект:</b> ${escapeHtml(objectType)}`,
     `💬 <b>Комментарий:</b> ${escapeHtml(comment || "—")}`,
-    "",
-  ];if (utmSource || utmMedium || utmCampaign) {
+    ""
+  ];
+
+  if (utmSource || utmMedium || utmCampaign) {
     rows.push(`📊 <b>UTM:</b> ${escapeHtml([utmSource, utmMedium, utmCampaign].filter(Boolean).join(" / "))}`);
   }
 

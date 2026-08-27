@@ -960,3 +960,148 @@ body.project-viewer-open{overflow:hidden}
   opacity:.6;
   cursor:wait;
 }
+
+
+/* =========================================================
+   VOREXWAY mobile v13 — swipe cards for Presence + Process
+   Desktop/tablet structure is unchanged.
+   ========================================================= */
+@media (max-width: 640px) {
+
+  /* Shared horizontal-scroll behavior */
+  .presence__items,
+  #process .steps {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    gap: 12px !important;
+    padding: 2px 0 10px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 0;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+  }
+
+  .presence__items::-webkit-scrollbar,
+  #process .steps::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* "Ремонт без постоянного присутствия" — swipeable cards */
+  .presence__items {
+    margin-top: 28px !important;
+    column-gap: 12px !important;
+  }
+
+  .presence__items > div {
+    flex: 0 0 78% !important;
+    min-width: 78% !important;
+    min-height: 168px !important;
+    padding: 24px !important;
+    margin: 0 !important;
+    background: rgba(255,255,255,.48);
+    border: 1px solid #e6ded4 !important;
+    border-radius: 6px;
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start !important;
+    justify-content: flex-end;
+    gap: 18px !important;
+    scroll-snap-align: start;
+  }
+
+  .presence__items > div::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  .presence__items span {
+    width: 46px !important;
+    height: 46px !important;
+    flex: 0 0 46px !important;
+    font-size: 22px;
+    background: #f7f2ec;
+  }
+
+  .presence__items b {
+    display: block;
+    max-width: 210px;
+    font-size: 18px !important;
+    line-height: 1.28;
+    font-weight: 500;
+  }
+
+  /* "Как мы работаем" — swipeable cards */
+  #process .container {
+    width: calc(100% - 28px) !important;
+    overflow: visible;
+  }
+
+  #process .section-title {
+    margin-bottom: 28px;
+  }
+
+  #process .steps {
+    position: relative;
+    padding-top: 2px !important;
+  }
+
+  #process .steps::before {
+    display: none !important;
+  }
+
+  #process .steps article {
+    flex: 0 0 78% !important;
+    min-width: 78% !important;
+    width: auto !important;
+    min-height: 245px;
+    padding: 26px !important;
+    margin: 0 !important;
+    background: #f7f2ec;
+    border: 1px solid #eee7de;
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    scroll-snap-align: start;
+  }
+
+  #process .steps article::after {
+    display: none !important;
+    content: none !important;
+  }
+
+  #process .steps article > span {
+    width: 48px !important;
+    height: 48px !important;
+    flex: 0 0 48px;
+    margin: 0 0 42px !important;
+    border-color: #b7a894 !important;
+    background: #f7f2ec !important;
+    font-family: Raleway, sans-serif;
+    font-size: 20px !important;
+    font-weight: 300;
+    color: #9e907d;
+  }
+
+  #process .steps h3 {
+    max-width: 230px !important;
+    margin: 0 0 12px !important;
+    font-size: 21px !important;
+    line-height: 1.2;
+    font-weight: 500;
+  }
+
+  #process .steps p {
+    max-width: 235px !important;
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.55;
+    color: #6d665f;
+  }
+}

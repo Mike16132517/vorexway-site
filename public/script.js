@@ -56,7 +56,6 @@ leadForm.addEventListener('submit',async e=>{
     company:String(fd.get('company')||'').trim(),
     consent:fd.get('consent')==='on',
     turnstileToken,
-    page:location.pathname,
     utm_source:new URLSearchParams(location.search).get('utm_source')||'',
     utm_medium:new URLSearchParams(location.search).get('utm_medium')||'',
     utm_campaign:new URLSearchParams(location.search).get('utm_campaign')||''

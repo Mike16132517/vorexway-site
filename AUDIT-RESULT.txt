@@ -1,0 +1,43 @@
+VOREXWAY — аудит и исправления
+
+Проверено:
+- wrangler.jsonc: корректно использует ./public и ASSETS binding.
+- Worker: только /api/* проходит через серверный код; статика обслуживается Workers Static Assets.
+- Все ссылки index.html на локальные CSS/JS/изображения существуют.
+- Telegram/Turnstile secrets в репозитории отсутствуют.
+- Turnstile Site Key находится в public/config.js (это публичный ключ, так и должно быть).
+- API /api/lead валидирует поля, Turnstile, Origin и ограничивает размер запроса.
+- Security headers и CSP присутствуют.
+
+Исправлено:
+- Тяжёлые изображения ЖК Сколково оптимизированы без апскейла.
+- Суммарный размер 6 галерейных Skolkovo: 5.88 MB -> 0.97 MB.
+- final-project.webp: 1.59 MB -> 0.17 MB.
+- Для карточки Сколково создан отдельный лёгкий cover.webp.
+- Hero помечен fetchpriority=high.
+- Все изображения ниже первого экрана получили loading=lazy и decoding=async.
+- Добавлены width/height к основным изображениям для уменьшения layout shift.
+- Кэш статических assets уменьшен с 30 дней до 1 дня, чтобы будущие замены файлов с тем же именем не зависали у клиентов на месяц.
+- script.js/config.js получают короткий revalidate-кэш.
+- Удалено ненужное поле page из заявки.
+- Worker-код отформатирован после предыдущего ручного исправления.
+
+Что ОБЯЗАТЕЛЬНО сделать в Cloudflare вручную:
+1. Turnstile -> VOREXWAY -> Hostname Management:
+   добавить vorexway.ru
+   добавить www.vorexway.ru
+   workers.dev можно оставить для тестов.
+2. Если создана runtime variable ALLOWED_HOSTNAME:
+   либо удалить её,
+   либо не использовать одно значение для нескольких доменов.
+   Текущий Worker уже защищён Hostname Management Turnstile; одна ALLOWED_HOSTNAME может ломать форму на www/workers.dev.
+3. DNS: запись mail.vorexway.ru должна быть DNS only (серое облако), не Proxied.
+4. privacy.html всё ещё содержит [ЗАПОЛНИТЬ] — перед рекламой/сбором реальных заявок заполнить данные оператора.
+5. После замены файлов: Commit -> Push -> дождаться успешного Cloudflare deployment.
+
+Вывод по медленной загрузке:
+- Cloudflare Static Assets настроены корректно.
+- Прямой запрос к проблемному WebP давал HTTP 200 и CF-Cache-Status: HIT.
+- Поэтому многоминутные Pending в Yandex Browser не объясняются кодом сайта или отсутствием assets.
+- Оптимизация выше уменьшает реальный вес сайта, но если Pending повторится именно в Yandex Browser при нормальном curl,
+  причина с высокой вероятностью в локальном браузере/прокси/VPN/HTTP3, а не в Worker.
