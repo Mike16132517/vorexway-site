@@ -5,10 +5,18 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains
   Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self' https://challenges.cloudflare.com; frame-src https://challenges.cloudflare.com; connect-src 'self' https://challenges.cloudflare.com; upgrade-insecure-requests
+
+/
   Cache-Control: public, max-age=60, stale-while-revalidate=300
 
+/index.html
+  Cache-Control: public, max-age=60, stale-while-revalidate=300
+
+/privacy.html
+  Cache-Control: public, max-age=300, stale-while-revalidate=3600
+
 /assets/*
-  Cache-Control: public, max-age=2592000, stale-while-revalidate=31536000
+  Cache-Control: public, max-age=31536000, immutable
 
 /styles.css
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
