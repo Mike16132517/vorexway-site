@@ -8,80 +8,86 @@ menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>menu.classL
 const modal=document.getElementById('modal');
 document.querySelectorAll('.js-open').forEach(b=>b.addEventListener('click',()=>{
   modal.classList.add('open');
-  loadTurnstile();
+  loadSmartCaptcha();
 }));
 document.querySelectorAll('.js-close').forEach(b=>b.addEventListener('click',()=>modal.classList.remove('open')));
-
 
 const toast=document.getElementById('toast');
 const leadForm=document.getElementById('form');
 const formStatus=document.getElementById('formStatus');
-let turnstileWidgetId=null;
-let turnstileLoading=false;
-let turnstileLoaded=false;
 
-function renderTurnstile(){
-  const key=window.VOREXWAY_CONFIG && window.VOREXWAY_CONFIG.turnstileSiteKey;
-  const mount=document.getElementById('turnstile-container');
-  if(!mount || !key || key==='PASTE_TURNSTILE_SITE_KEY_HERE') return;
+let smartCaptchaWidgetId=null;
+let smartCaptchaLoading=false;
+let smartCaptchaLoaded=false;
+let smartCaptchaToken='';
 
-  if(window.turnstile && turnstileWidgetId===null){
-    mount.textContent='';
-    turnstileWidgetId=window.turnstile.render(mount,{
-      sitekey:key,
-      theme:'light',
-      size:'flexible',
-      'error-callback':()=>{
-        formStatus.textContent='Не удалось загрузить проверку безопасности. Проверьте соединение и попробуйте ещё раз.';
-      }
-    });
-  }
+function renderSmartCaptcha(){
+  const key=window.VOREXWAY_CONFIG && window.VOREXWAY_CONFIG.smartCaptchaSiteKey;
+  const mount=document.getElementById('smartcaptcha-container');
+
+  if(!mount || !key || !window.smartCaptcha || smartCaptchaWidgetId!==null) return;
+
+  mount.textContent='';
+
+  smartCaptchaWidgetId=window.smartCaptcha.render(mount,{
+    sitekey:key,
+    callback:(token)=>{
+      smartCaptchaToken=token || '';
+      formStatus.textContent='';
+    },
+    'expired-callback':()=>{
+      smartCaptchaToken='';
+    }
+  });
 }
 
-function loadTurnstile(){
-  if(turnstileLoaded){
-    renderTurnstile();
+function loadSmartCaptcha(){
+  if(smartCaptchaLoaded){
+    renderSmartCaptcha();
     return;
   }
-  if(turnstileLoading) return;
 
-  const mount=document.getElementById('turnstile-container');
+  if(smartCaptchaLoading) return;
+
+  const mount=document.getElementById('smartcaptcha-container');
   if(mount) mount.textContent='Загружаем проверку безопасности…';
 
-  turnstileLoading=true;
+  smartCaptchaLoading=true;
+
   const s=document.createElement('script');
-  s.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  s.src='https://smartcaptcha.cloud.yandex.ru/captcha.js?render=onload&onload=smartCaptchaOnload';
   s.async=true;
   s.defer=true;
-  s.onload=()=>{
-    turnstileLoading=false;
-    turnstileLoaded=true;
-    renderTurnstile();
+
+  window.smartCaptchaOnload=()=>{
+    smartCaptchaLoading=false;
+    smartCaptchaLoaded=true;
+    renderSmartCaptcha();
   };
+
   s.onerror=()=>{
-    turnstileLoading=false;
+    smartCaptchaLoading=false;
     if(mount) mount.textContent='';
     formStatus.textContent='Проверка безопасности временно недоступна. Попробуйте ещё раз позднее.';
   };
+
   document.head.appendChild(s);
 }
 
 leadForm.addEventListener('submit',async e=>{
   e.preventDefault();
+
   const submit=leadForm.querySelector('button[type="submit"]');
   formStatus.textContent='';
 
-  const turnstileToken =
-    window.turnstile && turnstileWidgetId!==null
-      ? window.turnstile.getResponse(turnstileWidgetId)
-      : '';
-
-  if(!turnstileToken){
+  if(!smartCaptchaToken){
     formStatus.textContent='Подтвердите, что вы не робот.';
     return;
   }
 
   const fd=new FormData(leadForm);
+  const params=new URLSearchParams(location.search);
+
   const payload={
     name:String(fd.get('name')||'').trim(),
     phone:String(fd.get('phone')||'').trim(),
@@ -90,34 +96,50 @@ leadForm.addEventListener('submit',async e=>{
     comment:String(fd.get('comment')||'').trim(),
     company:String(fd.get('company')||'').trim(),
     consent:fd.get('consent')==='on',
-    turnstileToken,
-    utm_source:new URLSearchParams(location.search).get('utm_source')||'',
-    utm_medium:new URLSearchParams(location.search).get('utm_medium')||'',
-    utm_campaign:new URLSearchParams(location.search).get('utm_campaign')||''
+    smartCaptchaToken,
+    utm_source:params.get('utm_source')||'',
+    utm_medium:params.get('utm_medium')||'',
+    utm_campaign:params.get('utm_campaign')||''
   };
 
   submit.disabled=true;
   submit.textContent='Отправляем…';
 
   try{
-    const response=await fetch('/api/lead',{
+    const apiUrl=window.VOREXWAY_CONFIG && window.VOREXWAY_CONFIG.apiUrl;
+
+    if(!apiUrl) throw new Error('Сервис формы временно недоступен.');
+
+    const response=await fetch(apiUrl,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload),
-      credentials:'same-origin'
+      body:JSON.stringify(payload)
     });
+
     const data=await response.json().catch(()=>({}));
-    if(!response.ok) throw new Error(data.error||'Не удалось отправить заявку');
+
+    if(!response.ok){
+      throw new Error(data.error||'Не удалось отправить заявку');
+    }
 
     modal.classList.remove('open');
     toast.textContent='Спасибо! Заявка отправлена. Свяжемся с вами в ближайшее время.';
     toast.classList.add('show');
     setTimeout(()=>toast.classList.remove('show'),3500);
+
     leadForm.reset();
-    if(window.turnstile && turnstileWidgetId!==null) window.turnstile.reset(turnstileWidgetId);
+    smartCaptchaToken='';
+
+    if(window.smartCaptcha && smartCaptchaWidgetId!==null){
+      window.smartCaptcha.reset(smartCaptchaWidgetId);
+    }
   }catch(err){
     formStatus.textContent=err.message||'Ошибка отправки. Попробуйте ещё раз.';
-    if(window.turnstile && turnstileWidgetId!==null) window.turnstile.reset(turnstileWidgetId);
+    smartCaptchaToken='';
+
+    if(window.smartCaptcha && smartCaptchaWidgetId!==null){
+      window.smartCaptcha.reset(smartCaptchaWidgetId);
+    }
   }finally{
     submit.disabled=false;
     submit.textContent='Отправить заявку';
