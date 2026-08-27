@@ -97,10 +97,6 @@ async function handleLead(request, env) {
     return json({ error: "Проверка безопасности не пройдена. Обновите страницу и попробуйте ещё раз." }, 403);
   }
 
-  if (env.ALLOWED_HOSTNAME && turnstile.hostname && turnstile.hostname !== env.ALLOWED_HOSTNAME) {
-    return json({ error: "Проверка домена не пройдена." }, 403);
-  }
-
   const rows = [
     "🏠 <b>Новая заявка VOREXWAY</b>",
     "",
@@ -141,6 +137,11 @@ async function handleLead(request, env) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    if (url.hostname === "www.vorexway.ru") {
+      url.hostname = "vorexway.ru";
+      return Response.redirect(url.toString(), 308);
+    }
 
     if (url.pathname === "/api/lead") {
       return handleLead(request, env);

@@ -1,0 +1,39 @@
+VOREXWAY FINAL FAST PRODUCTION
+
+Что изменено:
+- Сохранён утверждённый дизайн v13.
+- Сохранены мобильные свайп-карточки.
+- Убраны Google Fonts из критической загрузки: сайт больше не ждёт fonts.googleapis.com/fonts.gstatic.com.
+- Используются системные шрифты устройства с сохранением текущей типографической иерархии.
+- Turnstile больше НЕ грузится вместе с главной страницей — он подгружается только при открытии формы заявки.
+- Тяжёлые изображения уже оптимизированы.
+- Удалено неиспользуемых assets: 7 файлов, 1.04 MB.
+- Worker редиректит www.vorexway.ru -> vorexway.ru.
+- wrangler.jsonc теперь содержит Custom Domains:
+  vorexway.ru
+  www.vorexway.ru
+- Старые Worker Routes больше не нужны.
+- Статика остаётся Workers Static Assets; /api/* проходит через Worker.
+- CSP больше не зависит от Google Fonts.
+- Telegram/Turnstile secrets НЕ находятся в ZIP.
+
+ВАЖНО: миграция Cloudflare
+Перед первым деплоем этой версии:
+1. Workers & Pages -> vorexway-site -> Settings -> Domains & Routes:
+   удалить старые Route:
+   vorexway.ru/*
+   www.vorexway.ru/*
+2. DNS -> Records:
+   удалить временную A-запись @ -> 192.0.2.1
+   удалить CNAME www -> vorexway.ru
+   НЕ ТРОГАТЬ MX/TXT Яндекс-почты и mail.
+3. После этого Commit + Push этой версии.
+   Wrangler сам создаст Custom Domains и необходимые DNS/сертификаты.
+4. Turnstile -> VOREXWAY -> Hostname Management:
+   добавить vorexway.ru
+   (www можно добавить тоже, хотя Worker сразу редиректит его на основной домен).
+5. В DNS запись mail.vorexway.ru держать DNS only (серое облако).
+
+Почему это лучше:
+Cloudflare рекомендует Custom Domains, когда Worker сам является origin приложения.
+Старые Routes предназначены прежде всего для Worker перед внешним origin-сервером.

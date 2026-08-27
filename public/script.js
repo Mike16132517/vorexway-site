@@ -6,7 +6,10 @@ closeMenu.addEventListener('click',()=>menu.classList.remove('open'));
 menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>menu.classList.remove('open')));
 
 const modal=document.getElementById('modal');
-document.querySelectorAll('.js-open').forEach(b=>b.addEventListener('click',()=>modal.classList.add('open')));
+document.querySelectorAll('.js-open').forEach(b=>b.addEventListener('click',()=>{
+  modal.classList.add('open');
+  loadTurnstile();
+}));
 document.querySelectorAll('.js-close').forEach(b=>b.addEventListener('click',()=>modal.classList.remove('open')));
 
 
@@ -14,22 +17,54 @@ const toast=document.getElementById('toast');
 const leadForm=document.getElementById('form');
 const formStatus=document.getElementById('formStatus');
 let turnstileWidgetId=null;
+let turnstileLoading=false;
+let turnstileLoaded=false;
 
-function initTurnstile(){
+function renderTurnstile(){
   const key=window.VOREXWAY_CONFIG && window.VOREXWAY_CONFIG.turnstileSiteKey;
   const mount=document.getElementById('turnstile-container');
   if(!mount || !key || key==='PASTE_TURNSTILE_SITE_KEY_HERE') return;
-  if(window.turnstile){
+
+  if(window.turnstile && turnstileWidgetId===null){
+    mount.textContent='';
     turnstileWidgetId=window.turnstile.render(mount,{
       sitekey:key,
       theme:'light',
-      size:'flexible'
+      size:'flexible',
+      'error-callback':()=>{
+        formStatus.textContent='Не удалось загрузить проверку безопасности. Проверьте соединение и попробуйте ещё раз.';
+      }
     });
-  } else {
-    setTimeout(initTurnstile,250);
   }
 }
-window.addEventListener('load',initTurnstile);
+
+function loadTurnstile(){
+  if(turnstileLoaded){
+    renderTurnstile();
+    return;
+  }
+  if(turnstileLoading) return;
+
+  const mount=document.getElementById('turnstile-container');
+  if(mount) mount.textContent='Загружаем проверку безопасности…';
+
+  turnstileLoading=true;
+  const s=document.createElement('script');
+  s.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  s.async=true;
+  s.defer=true;
+  s.onload=()=>{
+    turnstileLoading=false;
+    turnstileLoaded=true;
+    renderTurnstile();
+  };
+  s.onerror=()=>{
+    turnstileLoading=false;
+    if(mount) mount.textContent='';
+    formStatus.textContent='Проверка безопасности временно недоступна. Попробуйте ещё раз позднее.';
+  };
+  document.head.appendChild(s);
+}
 
 leadForm.addEventListener('submit',async e=>{
   e.preventDefault();
@@ -135,7 +170,7 @@ function renderProjectViewer(){
   p.images.forEach((src, index)=>{
     const b = document.createElement('button');
     if(index === activeProjectIndex) b.classList.add('active');
-    b.innerHTML = `<img src="${src}" alt="">`;
+    b.innerHTML = `<img src="${src}" alt="" loading="lazy" decoding="async">`;
     b.addEventListener('click',()=>{
       activeProjectIndex = index;
       renderProjectViewer();
