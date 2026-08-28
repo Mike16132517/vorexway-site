@@ -54,7 +54,6 @@ function loadSmartCaptcha(){
   script.onload=()=>{
     smartCaptchaLoading=false;
     smartCaptchaLoaded=true;
-    mount.textContent='';
   };
 
   script.onerror=()=>{
