@@ -16,62 +16,54 @@ const toast=document.getElementById('toast');
 const leadForm=document.getElementById('form');
 const formStatus=document.getElementById('formStatus');
 
-let smartCaptchaWidgetId=null;
 let smartCaptchaLoading=false;
 let smartCaptchaLoaded=false;
 let smartCaptchaToken='';
 
-function renderSmartCaptcha(){
-  const key=window.VOREXWAY_CONFIG && window.VOREXWAY_CONFIG.smartCaptchaSiteKey;
-  const mount=document.getElementById('smartcaptcha-container');
-
-  if(!mount || !key || !window.smartCaptcha || smartCaptchaWidgetId!==null) return;
-
-  mount.textContent='';
-
-  smartCaptchaWidgetId=window.smartCaptcha.render(mount,{
-    sitekey:key,
-    callback:(token)=>{
-      smartCaptchaToken=token || '';
-      formStatus.textContent='';
-    },
-    'expired-callback':()=>{
-      smartCaptchaToken='';
-    }
-  });
-}
+window.vorexwayCaptchaCallback=(token)=>{
+  smartCaptchaToken=token || '';
+  if(smartCaptchaToken) formStatus.textContent='';
+};
 
 function loadSmartCaptcha(){
-  if(smartCaptchaLoaded){
-    renderSmartCaptcha();
+  const mount=document.getElementById('smartcaptcha-container');
+  const key=window.VOREXWAY_CONFIG && window.VOREXWAY_CONFIG.smartCaptchaSiteKey;
+
+  if(!mount || !key){
+    formStatus.textContent='Проверка безопасности временно недоступна.';
     return;
   }
 
+  mount.dataset.sitekey=key;
+  mount.dataset.callback='vorexwayCaptchaCallback';
+  mount.dataset.hl='ru';
+  mount.style.minHeight='100px';
+
+  if(smartCaptchaLoaded || document.querySelector('script[data-vorexway-smartcaptcha]')) return;
   if(smartCaptchaLoading) return;
 
-  const mount=document.getElementById('smartcaptcha-container');
-  if(mount) mount.textContent='Загружаем проверку безопасности…';
-
   smartCaptchaLoading=true;
+  mount.textContent='Загружаем проверку безопасности…';
 
-  const s=document.createElement('script');
-  s.src='https://smartcaptcha.cloud.yandex.ru/captcha.js?render=onload&onload=smartCaptchaOnload';
-  s.async=true;
-  s.defer=true;
+  const script=document.createElement('script');
+  script.src='https://smartcaptcha.cloud.yandex.ru/captcha.js';
+  script.async=true;
+  script.defer=true;
+  script.dataset.vorexwaySmartcaptcha='1';
 
-  window.smartCaptchaOnload=()=>{
+  script.onload=()=>{
     smartCaptchaLoading=false;
     smartCaptchaLoaded=true;
-    renderSmartCaptcha();
+    mount.textContent='';
   };
 
-  s.onerror=()=>{
+  script.onerror=()=>{
     smartCaptchaLoading=false;
-    if(mount) mount.textContent='';
+    mount.textContent='';
     formStatus.textContent='Проверка безопасности временно недоступна. Попробуйте ещё раз позднее.';
   };
 
-  document.head.appendChild(s);
+  document.head.appendChild(script);
 }
 
 leadForm.addEventListener('submit',async e=>{
@@ -80,8 +72,12 @@ leadForm.addEventListener('submit',async e=>{
   const submit=leadForm.querySelector('button[type="submit"]');
   formStatus.textContent='';
 
-  if(!smartCaptchaToken){
+  const tokenInput=leadForm.querySelector('input[name="smart-token"]');
+  const captchaToken=(tokenInput && tokenInput.value) || smartCaptchaToken || '';
+
+  if(!captchaToken){
     formStatus.textContent='Подтвердите, что вы не робот.';
+    loadSmartCaptcha();
     return;
   }
 
@@ -96,7 +92,7 @@ leadForm.addEventListener('submit',async e=>{
     comment:String(fd.get('comment')||'').trim(),
     company:String(fd.get('company')||'').trim(),
     consent:fd.get('consent')==='on',
-    smartCaptchaToken,
+    smartCaptchaToken:captchaToken,
     utm_source:params.get('utm_source')||'',
     utm_medium:params.get('utm_medium')||'',
     utm_campaign:params.get('utm_campaign')||''
@@ -130,15 +126,15 @@ leadForm.addEventListener('submit',async e=>{
     leadForm.reset();
     smartCaptchaToken='';
 
-    if(window.smartCaptcha && smartCaptchaWidgetId!==null){
-      window.smartCaptcha.reset(smartCaptchaWidgetId);
+    if(window.smartCaptcha && typeof window.smartCaptcha.reset==='function'){
+      window.smartCaptcha.reset();
     }
   }catch(err){
     formStatus.textContent=err.message||'Ошибка отправки. Попробуйте ещё раз.';
     smartCaptchaToken='';
 
-    if(window.smartCaptcha && smartCaptchaWidgetId!==null){
-      window.smartCaptcha.reset(smartCaptchaWidgetId);
+    if(window.smartCaptcha && typeof window.smartCaptcha.reset==='function'){
+      window.smartCaptcha.reset();
     }
   }finally{
     submit.disabled=false;
