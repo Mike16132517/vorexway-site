@@ -1118,3 +1118,87 @@ body{
 img{
   content-visibility:auto;
 }
+
+/* ===== VOREXWAY v14 requested polish ===== */
+
+/* Brand: approved Raleway logo */
+.brand,
+.brand__name,
+.brand__tagline{
+  font-family:"Raleway",Arial,sans-serif!important;
+}
+.brand__name{
+  font-weight:300!important;
+}
+.brand__tagline{
+  font-weight:400!important;
+}
+
+/* Mobile: align the complete footer module to one left edge */
+@media(max-width:640px){
+  footer{
+    padding-bottom:calc(96px + env(safe-area-inset-bottom))!important;
+  }
+
+  .footer__grid{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    gap:28px!important;
+  }
+
+  .footer__grid>.brand,
+  .footer-nav,
+  .footer-contact{
+    width:100%!important;
+    justify-self:start!important;
+    align-self:flex-start!important;
+  }
+
+  .footer__grid>.brand{
+    align-items:flex-start!important;
+    text-align:left!important;
+  }
+
+  .footer-nav{
+    justify-content:flex-start!important;
+    align-items:flex-start!important;
+    gap:18px 28px!important;
+  }
+
+  .footer-contact{
+    align-items:flex-start!important;
+    text-align:left!important;
+    min-width:0!important;
+  }
+
+  .footer-contact div{
+    justify-content:flex-start!important;
+    width:100%!important;
+  }
+
+  /* Sticky CTA: identical visual language to all black site buttons */
+  .mobile-fixed{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    position:fixed!important;
+    left:14px!important;
+    right:14px!important;
+    bottom:max(14px,env(safe-area-inset-bottom))!important;
+    width:auto!important;
+    min-height:46px!important;
+    padding:0 22px!important;
+    background:#171716!important;
+    color:#fff!important;
+    border:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    text-transform:uppercase!important;
+    font-size:10px!important;
+    line-height:1!important;
+    letter-spacing:.05em!important;
+    font-weight:400!important;
+    z-index:40!important;
+  }
+}
