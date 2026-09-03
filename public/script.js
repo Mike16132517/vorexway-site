@@ -165,6 +165,22 @@ const projectData = {
       'assets/projects/skolkovo/05.webp',
       'assets/projects/skolkovo/06.webp'
     ]
+  },
+  uno: {
+    title: 'ЖК UNO',
+    area: '76,6 м²',
+    images: [
+      'assets/projects/uno/01.jpg',
+      'assets/projects/uno/02.jpg',
+      'assets/projects/uno/03.jpg',
+      'assets/projects/uno/04.jpg',
+      'assets/projects/uno/05.jpg',
+      'assets/projects/uno/06.jpg',
+      'assets/projects/uno/07.jpg',
+      'assets/projects/uno/08.jpg',
+      'assets/projects/uno/09.jpg',
+      'assets/projects/uno/10.jpg'
+    ]
   }
 };
 

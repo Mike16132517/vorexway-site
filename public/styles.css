@@ -1348,3 +1348,33 @@ img{
     z-index:40!important;
   }
 }
+
+/* ===== VOREXWAY PROJECTS UNO GRID ===== */
+@media(min-width:981px){
+  .project-grid-v7{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:16px!important;
+  }
+  .project-card-v7{
+    height:470px!important;
+  }
+  .project-card-v7__caption strong{
+    font-size:21px!important;
+  }
+}
+@media(max-width:980px) and (min-width:641px){
+  .project-grid-v7{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .project-card-v7:last-child{
+    grid-column:1/-1;
+  }
+}
+@media(max-width:640px){
+  .project-grid-v7{
+    grid-template-columns:1fr!important;
+  }
+  .project-card-v7{
+    height:430px!important;
+  }
+}
